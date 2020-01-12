@@ -26,7 +26,7 @@ class Symbol
         void SetIFLAG(bool);
         void SetMFLAG(bool);
 
-        /*destructor */
+        /* destructor */
         ~Symbol();
 
     private:
