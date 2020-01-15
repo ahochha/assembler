@@ -9,7 +9,7 @@ SymbolTable::SymbolTable()
     /* not currently implemented */
 }
 
-void SymbolTable::LoadData(ifstream &SYMS_file)
+void SymbolTable::LoadData(ifstream &SYMS_file, OpcodeTable &opcode_table)
 {
     string file_line = "";
     int line_num = 1;
@@ -17,19 +17,17 @@ void SymbolTable::LoadData(ifstream &SYMS_file)
 
     while (getline(SYMS_file, file_line) && critical_error == false) {
         if(!IsCommentLine(file_line)) {
-            critical_error = ProcessSymbol(line_num, file_line);
+            critical_error = ProcessSymbol(line_num, file_line, opcode_table);
             line_num++;
         }
     }
 }
 
-bool SymbolTable::ProcessSymbol(int line_num, string file_line)
+bool SymbolTable::ProcessSymbol(int line_num, string file_line, OpcodeTable &opcode_table)
 {
     Symbol temp_symbol;
-    Instruction instruction;
     string label = "";
     string operation = "";
-    string operand = "";
     int current_char = 0;
     bool valid_symbol = true;
     bool critical_error = false;
@@ -50,7 +48,7 @@ bool SymbolTable::ProcessSymbol(int line_num, string file_line)
         critical_error = ParseFirstOperation(file_line, current_char, operation, temp_symbol);
     }
     else {
-        //ParseOperation(file_line, current)
+        critical_error = ParseOperation(file_line, current_char, operation, temp_symbol, opcode_table);
     }
     
     /* set attributes and add valid symbol to table */
@@ -73,6 +71,32 @@ bool SymbolTable::ParseFirstOperation(string file_line, int &current_char, strin
         symbol.SetRFLAG(true);
     }
     
+    return critical_error;
+}
+
+bool SymbolTable::ParseOperation(string file_line, int &current_char, string operation, Symbol &symbol, OpcodeTable &opcode_table)
+{
+    bool critical_error = false;
+    regex skip_op_regex("EQU|END|BASE|EXTREF|EXTDEF");
+    regex op_regex("RESW|WORD|RESB|BYTE");
+
+    /* DO SOMETHING FOR LINES THAT DONT HAVE A SYMBOL LABEL */
+
+    if (regex_match(operation, skip_op_regex)) {
+        cout << "skip op" << endl;
+    }
+    else if (regex_match(operation, op_regex)) {
+        cout << "op" << endl;
+    }
+    else {
+        critical_error = opcode_table.Search(operation);
+        cout << critical_error << " " << operation << endl;
+    }
+
+    if (!critical_error) {
+        //do stuff here...
+    }
+
     return critical_error;
 }
 

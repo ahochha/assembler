@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
 #include "OpcodeTable.h"
 using namespace std;
 
@@ -37,6 +38,13 @@ void OpcodeTable::ProcessOpcode(string file_line)
 void OpcodeTable::InsertOpcode(Opcode opcode)
 {
     opcode_table.push_back(opcode);
+}
+
+bool OpcodeTable::Search(string operation)
+{
+    return find_if(opcode_table.begin(), opcode_table.end(), [operation](Opcode &opcode){
+        return operation == opcode.GetName();
+    }) == opcode_table.end();
 }
 
 void OpcodeTable::PrintTable()

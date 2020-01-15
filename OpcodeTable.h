@@ -19,6 +19,7 @@ class OpcodeTable : public FileHandler
 
         /* functions */
         void LoadData(ifstream&);
+        bool Search(string);
         void PrintTable();
 
         /* destructor */

@@ -16,7 +16,7 @@ struct Error
     string message;
 };
 
-class Validator 
+class Validator
 {
     public:
         /* constructor */

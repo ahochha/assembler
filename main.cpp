@@ -39,7 +39,7 @@ int main(const int argc, const char* argv[])
         cerr << "ERROR -- " << filename << " was not found." << endl;
     }
     else {
-        symbol_table.LoadData(ASM_file);
+        symbol_table.LoadData(ASM_file, opcode_table);
         symbol_table.PrintTable();
         symbol_table.PrintErrors();
     }
