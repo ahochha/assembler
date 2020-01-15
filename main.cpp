@@ -6,6 +6,7 @@
 #include "Validator.h"
 #include "SymbolTable.h"
 #include "OpcodeTable.h"
+#include "IntermediateTable.h"
 using namespace std;
 
 /* prototypes */
@@ -13,28 +14,17 @@ void GetFilename(const int, const char*[], string&);
 
 int main(const int argc, const char* argv[])
 {
-    ifstream SYMS_file;
     ifstream OPCODE_file;
 	ifstream ASM_file;
     string filename;
     SymbolTable symbol_table;
     OpcodeTable opcode_table;
+    IntermediateTable intermediate_table;
 
-    SYMS_file.open("SYMS.DAT");
     OPCODE_file.open("OPCODES.DAT");
 
     GetFilename(argc, argv, filename);
     ASM_file.open(filename);
-
-    /* load and display symbol table */
-    if (!SYMS_file) {
-        cerr << "ERROR -- SYMS.DAT was not found." << endl;
-    }
-    else {
-        symbol_table.LoadData(SYMS_file);
-        symbol_table.PrintTable();
-        symbol_table.PrintErrors();
-    }
 
     /* load opcode table */
     if (!OPCODE_file) {
@@ -42,17 +32,17 @@ int main(const int argc, const char* argv[])
     }
     else {
         opcode_table.LoadData(OPCODE_file);
-        opcode_table.PrintTable();
     }
 
-    /* process inputed program file 
+    /* process inputed program file */
     if (!ASM_file) {
         cerr << "ERROR -- " << filename << " was not found." << endl;
     }
     else {
-        cout << "--- PASS ONE ---" << endl << endl << endl << "SIC/XE Source Program" << endl << endl;
-
-    } */
+        symbol_table.LoadData(ASM_file);
+        symbol_table.PrintTable();
+        symbol_table.PrintErrors();
+    }
 
     return 0;
 }

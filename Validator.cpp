@@ -11,43 +11,41 @@ Validator::Validator()
     /* not currently implemented */
 }
 
-bool Validator::ValidateSymbolEntry(int line_num, string name, string value, string rflag, Symbol &symbol)
+bool Validator::ValidateSymbolLabel(int line_num, string name, Symbol &symbol)
 {
-    vector<SymbolError> line_errors;
+    vector<Error> line_errors;
     bool valid_symbol = true;
     bool search_val = true;
 
-    /* validate symbol attributes */
-    line_errors.push_back(ValidateSymbolNameFirstChar(line_num, name));
-    line_errors.push_back(ValidateSymbolNameAlphaNumericChars(line_num, name));
-    line_errors.push_back(ValidateSymbolNameLength(line_num, name));
-    line_errors.push_back(ValidateSymbolValue(line_num, value));
-    line_errors.push_back(ValidateAndSetSymbolRFLAG(line_num, rflag, symbol));
+    /* validate symbol label */
+    line_errors.push_back(ValidateSymbolLabelFirstChar(line_num, name));
+    line_errors.push_back(ValidateSymbolLabelAlphaNumericChars(line_num, name));
+    line_errors.push_back(ValidateSymbolLabelLength(line_num, name));
 
     /* search vector for errors (is_error == true) */
-    valid_symbol = find_if(line_errors.begin(), line_errors.end(), [](const SymbolError &error){
+    valid_symbol = find_if(line_errors.begin(), line_errors.end(), [](const Error &error){
         return error.is_error == true;
     }) == line_errors.end();
 
-    LogErrors(line_errors);
+    for (Error error: line_errors) {
+        if (error.is_error == true) {
+            LogError(error);
+        }
+    }
 
     return valid_symbol;
 }
 
-void Validator::LogErrors(vector<SymbolError> line_errors)
+void Validator::LogError(Error error)
 {
-    for (SymbolError error: line_errors) {
-        if (error.is_error == true) {
-            errors.push_back(error);
-        }
-    }
+    errors.push_back(error);
 
     return;
 }
 
-SymbolError Validator::ValidateSymbolNameFirstChar(int line_num, string name)
+Error Validator::ValidateSymbolLabelFirstChar(int line_num, string name)
 {
-    SymbolError error = { false, line_num, "Valid Symbol!" };
+    Error error = { false, line_num, "symbol", "Valid Symbol!" };
 
     if (!isalpha(name[0])) {
         error.is_error = true;
@@ -57,9 +55,9 @@ SymbolError Validator::ValidateSymbolNameFirstChar(int line_num, string name)
     return error;
 }
 
-SymbolError Validator::ValidateSymbolNameAlphaNumericChars(int line_num, string name)
+Error Validator::ValidateSymbolLabelAlphaNumericChars(int line_num, string name)
 {
-    SymbolError error = { false, line_num, "Valid Symbol!" };
+    Error error = { false, line_num, "symbol", "Valid Symbol!" };
 
     for (char &c: name) {
         if(!(isalnum(c) || c == '_')) {
@@ -72,9 +70,9 @@ SymbolError Validator::ValidateSymbolNameAlphaNumericChars(int line_num, string 
     return error;
 }
 
-SymbolError Validator::ValidateSymbolNameLength(int line_num, string name)
+Error Validator::ValidateSymbolLabelLength(int line_num, string name)
 {
-    SymbolError error = { false, line_num, "Valid Symbol!" };
+    Error error = { false, line_num, "symbol", "Valid Symbol!" };
 
     if (name.size() > 10) {
         error.is_error = true;
@@ -84,58 +82,19 @@ SymbolError Validator::ValidateSymbolNameLength(int line_num, string name)
     return error;
 }
 
-SymbolError Validator::ValidateSymbolValue(int line_num, string value)
+bool Validator::ValidateFirstOperation(string operation)
 {
-    SymbolError error = { false, line_num, "Valid Symbol!" };
-    bool is_digit;
-
-    for (char &c: value) {
-        is_digit = isdigit(c);
-
-        if (c == '-' || c == '+') {
-            is_digit = true;
-        }
-
-        if (is_digit == false) {
-            error.is_error = true;
-            error.message = "ERROR -- The value for the symbol must be an int.  Value: " + value;
-            break;
-        }
-    }
-
-    return error;
+    return (operation != "START");
 }
 
-SymbolError Validator::ValidateAndSetSymbolRFLAG(int line_num, string rflag, Symbol &symbol)
-{
-    SymbolError error = { false, line_num, "Valid Symbol!" };
-    const char* c_rflag = rflag.c_str();
-
-    /* tests a true RFLAG */
-    if (strcmp(c_rflag, "TRUE") == 0 || strcmp(c_rflag, "T") == 0 || strcmp(c_rflag, "1") == 0) {
-        symbol.SetRFLAG(true);
-    }
-    /* tests a false RFLAG */
-    else if (strcmp(c_rflag, "FALSE") == 0 || strcmp(c_rflag, "F") == 0 || strcmp(c_rflag, "0") == 0) {
-        symbol.SetRFLAG(false);
-    }
-    /* anything else */
-    else {
-        error.is_error = true;
-        error.message = "ERROR -- Invalid RFLAG.  RFLAG must be true or false.  RFlag: " + rflag;
-    }
-
-    return error;
-}
-
-vector<SymbolError> Validator::GetErrors()
+vector<Error> Validator::GetErrors()
 {
     return errors;
 }
 
 void Validator::PrintErrors()
 {
-    for (SymbolError error: errors) {
+    for (Error error: errors) {
         cout << "Line #" << error.line_num << ": " << error.message << endl;
     }
 

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <regex>
 #include "SymbolTable.h"
 using namespace std;
 
@@ -12,44 +13,67 @@ void SymbolTable::LoadData(ifstream &SYMS_file)
 {
     string file_line = "";
     int line_num = 1;
+    bool critical_error = false;
 
-    while (getline(SYMS_file, file_line)) {
-        AddLine(file_line);
-        ProcessSymbol(line_num, file_line);
-        line_num++;
+    while (getline(SYMS_file, file_line) && critical_error == false) {
+        if(!IsCommentLine(file_line)) {
+            critical_error = ProcessSymbol(line_num, file_line);
+            line_num++;
+        }
     }
 }
 
-void SymbolTable::ProcessSymbol(int line_num, string file_line)
+bool SymbolTable::ProcessSymbol(int line_num, string file_line)
 {
-    vector<SymbolError> errors;
     Symbol temp_symbol;
-    string name = "";
-    string value = "";
-    string rflag = "";
+    Instruction instruction;
+    string label = "";
+    string operation = "";
+    string operand = "";
     int current_char = 0;
     bool valid_symbol = true;
+    bool critical_error = false;
 
-    /* get symbol attributes */
-    name = ReadAttribute(file_line, current_char);
-    value = ReadAttribute(file_line, current_char);
-    rflag = ReadAttribute(file_line, current_char);
+    /* read and validate label */
+    label = ReadAttribute(file_line, current_char);
+    valid_symbol = ValidateSymbolLabel(line_num, label, temp_symbol);
 
-    /* validate symbol attributes before adding symbol to table */
-    valid_symbol = ValidateSymbolEntry(line_num, name, value, rflag, temp_symbol);
+    /* read operation (delete [+] if present) */
+    operation = ReadAttribute(file_line, current_char);
     
-    /* set attributes and add valid symbol to table */
-    if(valid_symbol) {
-        name.resize(4, ' ');
-        temp_symbol.SetName(name);
-        temp_symbol.SetValue(value);
-        temp_symbol.SetIFLAG(false);
-        temp_symbol.SetMFLAG(false);
-
-        InsertSymbol(line_num, temp_symbol);
+    if (operation[0] == '+') {
+        operation.erase(0, 1);
     }
 
-    return;
+    /* validate program instruction */
+    if (line_num == 1) {
+        critical_error = ParseFirstOperation(file_line, current_char, operation, temp_symbol);
+    }
+    else {
+        //ParseOperation(file_line, current)
+    }
+    
+    /* set attributes and add valid symbol to table */
+    // if(valid_symbol) {
+    //     label.resize(4, ' ');
+    //     temp_symbol.SetLabel(label);
+
+    //     InsertSymbol(line_num, temp_symbol);
+    // }
+
+    return critical_error;
+}
+
+bool SymbolTable::ParseFirstOperation(string file_line, int &current_char, string operation, Symbol &symbol)
+{
+    bool critical_error = ValidateFirstOperation(operation);
+
+    if(!critical_error) {
+        symbol.SetValue(ReadAttribute(file_line, current_char));
+        symbol.SetRFLAG(true);
+    }
+    
+    return critical_error;
 }
 
 void SymbolTable::InsertSymbol(int line_num, Symbol symbol)
@@ -61,13 +85,13 @@ void SymbolTable::InsertSymbol(int line_num, Symbol symbol)
 
 void SymbolTable::PrintTable()
 {
-	cout << endl << "Symbol" << setw(12) << "Value" << setw(12) << "RFlag"
+	cout << endl << "Label" << setw(12) << "Value" << setw(12) << "RFlag"
 		<< setw(12) << "IFlag" << setw(12) << "MFlag" << endl;
 
     cout << "------------------------------------------------------" << endl;
 
     for (auto symbol: symbol_table) {
-        cout << setw(4) << symbol.second.GetName() << setw(12) << symbol.second.GetValue() 
+        cout << setw(4) << symbol.second.GetLabel() << setw(12) << symbol.second.GetValue() 
             << setw(12) << symbol.second.GetRFLAG() << setw(12) << symbol.second.GetIFLAG() 
             << setw(12) << symbol.second.GetMFLAG() << endl;
     }

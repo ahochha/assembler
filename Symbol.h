@@ -13,14 +13,14 @@ class Symbol
         Symbol();
 
         /* getters */
-        string GetName();
-        int GetValue();
+        string GetLabel();
+        string GetValue();
         bool GetRFLAG();
         bool GetIFLAG();
         bool GetMFLAG();
 
         /* setters */
-        void SetName(string);
+        void SetLabel(string);
         void SetValue(string);
         void SetRFLAG(bool);
         void SetIFLAG(bool);
@@ -30,8 +30,8 @@ class Symbol
         ~Symbol();
 
     private:
-        string name;
-        int value;
+        string label;
+        string value;
         bool RFLAG;
         bool IFLAG;
         bool MFLAG;

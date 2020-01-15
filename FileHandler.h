@@ -21,6 +21,7 @@ class FileHandler
 
         /* functions */
         string ReadAttribute(string, int&);
+        bool IsCommentLine(string);
 
         /* destructor */
         ~FileHandler();

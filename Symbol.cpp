@@ -4,21 +4,21 @@ using namespace std;
 
 Symbol::Symbol()
 {
-    name = "";
+    label = "";
     value = -99;
     RFLAG = false;
     IFLAG = false;
     MFLAG = false;
 }
 
-void Symbol::SetName(string _name)
+void Symbol::SetLabel(string _label)
 {
-    name = _name;
+    label = _label;
 }
 
 void Symbol::SetValue(string _value)
 {
-    value = stoi(_value);
+    value = _value;
 }
 
 void Symbol::SetRFLAG(bool _rflag)
@@ -36,12 +36,12 @@ void Symbol::SetMFLAG(bool _mflag)
     MFLAG = _mflag;
 }
 
-string Symbol::GetName()
+string Symbol::GetLabel()
 {
-    return name;
+    return label;
 }
 
-int Symbol::GetValue()
+string Symbol::GetValue()
 {
     return value;
 }

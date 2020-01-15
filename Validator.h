@@ -8,10 +8,11 @@
 #include "Symbol.h"
 using namespace std;
 
-struct SymbolError 
+struct Error 
 {
     bool is_error;
     int line_num;
+    string error_type;
     string message;
 };
 
@@ -22,23 +23,22 @@ class Validator
         Validator();
 
         /* getters */
-        vector<SymbolError> GetErrors();
+        vector<Error> GetErrors();
 
         /* functions */
-        bool ValidateSymbolEntry(int, string, string, string, Symbol&);
+        bool ValidateSymbolLabel(int, string, Symbol&);
+        bool ValidateFirstOperation(string);
         void PrintErrors();
 
         /*destructor */
         ~Validator();
 
     private:
-        vector<SymbolError> errors;
-        SymbolError ValidateSymbolNameFirstChar(int, string);
-        SymbolError ValidateSymbolNameAlphaNumericChars(int, string);
-        SymbolError ValidateSymbolNameLength(int, string);
-        SymbolError ValidateSymbolValue(int, string);
-        SymbolError ValidateAndSetSymbolRFLAG(int, string, Symbol&);
-        void LogErrors(vector<SymbolError>);
+        vector<Error> errors;
+        Error ValidateSymbolLabelFirstChar(int, string);
+        Error ValidateSymbolLabelAlphaNumericChars(int, string);
+        Error ValidateSymbolLabelLength(int, string);
+        void LogError(Error);
 };
 
 #endif

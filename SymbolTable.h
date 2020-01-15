@@ -9,6 +9,7 @@
 #include "Symbol.h"
 #include "FileHandler.h"
 #include "Validator.h"
+#include "IntermediateTable.h"
 using namespace std;
 
 class SymbolTable : public FileHandler, public Validator
@@ -26,7 +27,8 @@ class SymbolTable : public FileHandler, public Validator
 
     private:
         map<int, Symbol> symbol_table;
-        void ProcessSymbol(int, string);
+        bool ProcessSymbol(int, string);
+        bool ParseFirstOperation(string, int&, string, Symbol&);
         void InsertSymbol(int, Symbol);
 };
 
