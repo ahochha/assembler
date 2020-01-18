@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <regex>
 #include "Validator.h"
 using namespace std;
 

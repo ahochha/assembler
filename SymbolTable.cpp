@@ -13,91 +13,239 @@ void SymbolTable::LoadData(ifstream &SYMS_file, OpcodeTable &opcode_table)
 {
     string file_line = "";
     int line_num = 1;
-    bool critical_error = false;
+    Address address = { false, false, true, 0 };
 
-    while (getline(SYMS_file, file_line) && critical_error == false) {
+    while (getline(SYMS_file, file_line) && address.is_error == false) {
         if(!IsCommentLine(file_line)) {
-            critical_error = ProcessSymbol(line_num, file_line, opcode_table);
+            AddLine(file_line);
+            address = ProcessSymbol(line_num, address.location_counter, GetLine(line_num), opcode_table);
             line_num++;
         }
     }
 }
 
-bool SymbolTable::ProcessSymbol(int line_num, string file_line, OpcodeTable &opcode_table)
+/* ADD ERROR HANDLING FOR LINES WITH ERRORS */
+Address SymbolTable::ProcessSymbol(int line_num, int location_counter, string file_line, OpcodeTable &opcode_table)
 {
+    Address address = { false, false, true, location_counter };
     Symbol temp_symbol;
     string label = "";
     string operation = "";
     int current_char = 0;
-    bool valid_symbol = true;
-    bool critical_error = false;
+    bool valid_symbol = false;
+    regex has_label_regex("[^\\s]+\\s+[^\\s]+\\s+[^\\s]+\\s*");
 
-    /* read and validate label */
-    label = ReadAttribute(file_line, current_char);
-    valid_symbol = ValidateSymbolLabel(line_num, label, temp_symbol);
+    if (regex_match(file_line, has_label_regex)) {
+        /* read and validate label */
+        label = ReadAttribute(file_line, current_char);
+        valid_symbol = ValidateSymbolLabel(line_num, label, temp_symbol);
+    }
 
-    /* read operation (delete [+] if present) */
+    /* read operation */
     operation = ReadAttribute(file_line, current_char);
-    
-    if (operation[0] == '+') {
-        operation.erase(0, 1);
-    }
 
-    /* validate program instruction */
+    /* parse instruction to increment location counter */
     if (line_num == 1) {
-        critical_error = ParseFirstOperation(file_line, current_char, operation, temp_symbol);
+        address = ParseFirstOperation(file_line, current_char, operation, temp_symbol);
     }
     else {
-        critical_error = ParseOperation(file_line, current_char, operation, temp_symbol, opcode_table);
+        address = ParseOperation(file_line, current_char, location_counter, operation, temp_symbol, opcode_table);
     }
-    
+    /* PROBLEM WITH SYMBOL TABLE INCREMENTING LINE_NUM WHEN ITS NOT SUPPOSE TO,
+    CAUSING ISSUE WITH SYMBOL TABLE DISPLAY SHOWING BLANK LINES */
     /* set attributes and add valid symbol to table */
-    // if(valid_symbol) {
-    //     label.resize(4, ' ');
-    //     temp_symbol.SetLabel(label);
+    if(valid_symbol && !address.is_error) {
+        label.resize(4, ' ');
+        temp_symbol.SetLabel(label);
 
-    //     InsertSymbol(line_num, temp_symbol);
-    // }
+        if (address.is_equ) {
+            temp_symbol.SetValue(dtoh(address.location_counter));
+            address.location_counter = location_counter;
+        }
+        else {
+            temp_symbol.SetValue(dtoh(location_counter));
+        }
 
-    return critical_error;
+        cout << temp_symbol.GetLabel() << ' ' << temp_symbol.GetValue() << endl;
+
+        InsertSymbol(line_num, temp_symbol);
+    }
+
+    return address;
 }
 
-bool SymbolTable::ParseFirstOperation(string file_line, int &current_char, string operation, Symbol &symbol)
+Address SymbolTable::ParseFirstOperation(string file_line, int &current_char, string operation, Symbol &symbol)
 {
-    bool critical_error = ValidateFirstOperation(operation);
+    Address address = { false, false, true, 0 };
+    address.is_error = ValidateFirstOperation(operation);
 
-    if(!critical_error) {
-        symbol.SetValue(ReadAttribute(file_line, current_char));
-        symbol.SetRFLAG(true);
+    if(!address.is_error) {
+        address.location_counter = stoi(ReadAttribute(file_line, current_char));
     }
     
-    return critical_error;
+    return address;
 }
 
-bool SymbolTable::ParseOperation(string file_line, int &current_char, string operation, Symbol &symbol, OpcodeTable &opcode_table)
+Address SymbolTable::ParseOperation(string file_line, int &current_char, int location_counter, string operation, Symbol &symbol, OpcodeTable &opcode_table)
 {
-    bool critical_error = false;
-    regex skip_op_regex("EQU|END|BASE|EXTREF|EXTDEF");
-    regex op_regex("RESW|WORD|RESB|BYTE");
+    Address address = { false, false, true, location_counter };
+    FoundOpcode search_op = { false, Opcode() };
+    string operand = "";
+    regex special_op_regex("EQU|END|BASE|EXTREF|EXTDEF");
+    regex mem_space_regex("RESW|WORD|RESB|BYTE");
+    bool special_op = regex_match(operation, special_op_regex);
+    bool mem_space_op = regex_match(operation, mem_space_regex);
 
-    /* DO SOMETHING FOR LINES THAT DONT HAVE A SYMBOL LABEL */
-
-    if (regex_match(operation, skip_op_regex)) {
-        cout << "skip op" << endl;
+    if (mem_space_op) {
+        operand = ReadAttribute(file_line, current_char);
+        address.location_counter = AllocateNeededMemory(operation, operand, location_counter);
     }
-    else if (regex_match(operation, op_regex)) {
-        cout << "op" << endl;
+    else if (special_op)
+    {
+        operand = ReadAttribute(file_line, current_char);
+        address = ParseSpecialOperation(operation, operand, location_counter);
     }
     else {
-        critical_error = opcode_table.Search(operation);
-        cout << critical_error << " " << operation << endl;
+        if (operation[0] == '+') {
+            operation.erase(0, 1);
+        }
+
+        search_op = opcode_table.Search(operation);
+        address.is_error = search_op.not_found;
+        address.location_counter = DetermineFormatType(search_op.opcode.GetFormat(), location_counter);
     }
 
-    if (!critical_error) {
-        //do stuff here...
+    return address;
+}
+
+Address SymbolTable::ParseSpecialOperation(string operation, string operand, int location_counter)
+{
+    Address address = { false, false, true, location_counter };
+
+    if (operation == "EQU" && operand != "*")
+    {
+        address.location_counter = EvaluateExpression(operand, location_counter);
+        address.is_equ = true;
+    }
+    /* ... */
+
+    return address;
+}
+
+int SymbolTable::EvaluateExpression(string operand, int location_counter)
+{
+    int value  = 0;
+    int expression_start = 0;
+    FoundSymbol expression_1 = { false, Symbol() };
+    FoundSymbol expression_2 = { false, Symbol() };
+    regex op_type_regex("\\w+[\\+\\-]\\w+");
+    bool equation = regex_match(operand, op_type_regex);
+    
+    if (equation) {
+        expression_1 = GetExpressionValue(operand, expression_start);
+        expression_start++;
+        expression_2 = GetExpressionValue(operand, expression_start);
+
+        if (operand.find('+') != string::npos && (expression_1.found && expression_2.found))
+        {
+            value = stoi(expression_1.symbol.GetValue()) + stoi(expression_2.symbol.GetValue());
+        }
+        else if (operand.find('-') != string::npos && (expression_1.found && expression_2.found))
+        {
+            value = stoi(expression_1.symbol.GetValue()) - stoi(expression_2.symbol.GetValue());
+        }
+    }
+    else {
+        expression_1 = GetExpressionValue(operand, expression_start);
+        value = stoi(expression_1.symbol.GetValue());
     }
 
-    return critical_error;
+    return value;
+}
+
+FoundSymbol SymbolTable::GetExpressionValue(string operand, int &expression_start)
+{
+    FoundSymbol search_symbol = { false, Symbol() };
+    string expression = "";
+    string comparison_operand = operand.erase(0, expression_start);
+    regex expression_regex("\\w+");
+    smatch match;
+
+    if (regex_search(operand, match, expression_regex)) {
+        if (match.size() == 1) {
+            expression = match[0];
+            expression.resize(4, ' ');
+            search_symbol = Search(expression);
+            expression_start = match[0].length();
+        }
+    }
+
+    /* CHECK FOR NUMBER */
+    if (!search_symbol.found) {
+        search_symbol.symbol.SetValue(operand);
+    }
+
+    return search_symbol;
+}
+
+FoundSymbol SymbolTable::Search(string label)
+{
+    FoundSymbol search_symbol = { false, Symbol() };
+
+    for (int i = 0; i < symbol_table.size(); i++) {
+        if (label == symbol_table[i].GetLabel()) {
+            search_symbol.symbol = symbol_table[i];
+            search_symbol.found = true;
+        }
+    }
+
+    return search_symbol;
+}
+
+int SymbolTable::DetermineFormatType(int format, int location_counter)
+{
+    if (format == 1) {
+        location_counter += 1;
+    }
+    else if (format == 2) {
+        location_counter += 2;
+    }
+    else if (format == 3) {
+        location_counter += 3;
+    }
+    else if (format == 4) {
+        location_counter += 4;
+    }
+
+    return location_counter;
+}
+
+int SymbolTable::AllocateNeededMemory(string operation, string operand, int location_counter)
+{
+    if (operation == "WORD") {
+        location_counter += 3;
+    }
+    else if (operation == "RESW") {
+        location_counter += (3 * stoi(operand));
+    }
+    else if (operation == "RESB") {
+        location_counter += stoi(operand);
+    }
+    else if (operation == "BYTE") {
+        regex byte_regex("'[^\\s]+'");
+        smatch match;
+
+        if (regex_search(operand, match, byte_regex)) {
+            if (match.size() == 1) {
+                location_counter += (match[0].length() - 2);
+            }
+            else {
+                /* log error */
+            }
+        }
+    }
+
+    return location_counter;
 }
 
 void SymbolTable::InsertSymbol(int line_num, Symbol symbol)

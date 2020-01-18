@@ -5,7 +5,7 @@ using namespace std;
 Symbol::Symbol()
 {
     label = "";
-    value = -99;
+    value = "";
     RFLAG = false;
     IFLAG = false;
     MFLAG = false;

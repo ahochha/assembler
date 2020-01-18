@@ -11,6 +11,12 @@
 #include "Validator.h"
 using namespace std;
 
+struct FoundOpcode
+{
+    bool not_found;
+    Opcode opcode;
+};
+
 class OpcodeTable : public FileHandler
 {
     public:
@@ -19,7 +25,7 @@ class OpcodeTable : public FileHandler
 
         /* functions */
         void LoadData(ifstream&);
-        bool Search(string);
+        FoundOpcode Search(string);
         void PrintTable();
 
         /* destructor */

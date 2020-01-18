@@ -40,11 +40,20 @@ void OpcodeTable::InsertOpcode(Opcode opcode)
     opcode_table.push_back(opcode);
 }
 
-bool OpcodeTable::Search(string operation)
+FoundOpcode OpcodeTable::Search(string operation)
 {
-    return find_if(opcode_table.begin(), opcode_table.end(), [operation](Opcode &opcode){
+    FoundOpcode search_op = { false, Opcode() };
+    auto match_opcode = find_if(opcode_table.begin(), opcode_table.end(), [operation](Opcode &opcode){
         return operation == opcode.GetName();
-    }) == opcode_table.end();
+    });
+    search_op.not_found = (match_opcode == opcode_table.end());
+
+    if (!search_op.not_found) {
+        int matched_num = distance(opcode_table.begin(), match_opcode);
+        search_op.opcode = opcode_table[matched_num];
+    }
+
+    return search_op;
 }
 
 void OpcodeTable::PrintTable()

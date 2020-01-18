@@ -13,9 +13,29 @@ vector<string> FileHandler::GetLines()
     return lines;
 }
 
+string FileHandler::GetLine(int line_num)
+{
+    return lines[line_num - 1];
+}
+
 void FileHandler::AddLine(string line)
 {
-    lines.push_back(line);
+    lines.push_back(CleanLine(line));
+}
+
+string FileHandler::CleanLine(string line)
+{
+    int current_char = 0;
+    string cleaned_line = "";
+
+    current_char = SkipBeginningSpaces(line, current_char);
+
+    while (line[current_char] != '$' && current_char < line.size()) {
+        cleaned_line.push_back(line[current_char]);
+        current_char++;
+    }
+
+    return cleaned_line;
 }
 
 string FileHandler::ReadAttribute(string line, int& current_char)
@@ -24,10 +44,7 @@ string FileHandler::ReadAttribute(string line, int& current_char)
     string attribute = "";
     bool is_literal = false;
 
-    /* skip spaces at begining of attribute */
-    while (line[current_char] == ' ') {
-        current_char++;
-    }
+    current_char = SkipBeginningSpaces(line, current_char);
 
     if (line[current_char] == '=') {
         is_literal = true;
@@ -49,12 +66,22 @@ string FileHandler::ReadAttribute(string line, int& current_char)
     return attribute;
 }
 
-bool FileHandler::IsCommentLine(string file_line)
+int FileHandler::SkipBeginningSpaces(string line, int current_char) 
+{
+    /* skip spaces at begining of attribute */
+    while (line[current_char] == ' ') {
+        current_char++;
+    }
+
+    return current_char;
+}
+
+bool FileHandler::IsCommentLine(string line)
 {
     bool isComment = false;
 
     /* $ is the comment character */
-    for(char &c: file_line) {
+    for(char &c: line) {
         if(c != ' ' && c != '$') {
             break;
         }
@@ -63,7 +90,7 @@ bool FileHandler::IsCommentLine(string file_line)
         }
     }
 
-    if (file_line.size() == 0) {
+    if (line.size() == 0) {
         isComment = true;
     }
 

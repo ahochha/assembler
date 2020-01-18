@@ -5,6 +5,7 @@
         "xstring": "cpp",
         "ostream": "cpp",
         "cstring": "cpp",
-        "iosfwd": "cpp"
+        "iosfwd": "cpp",
+        "regex": "cpp"
     }
 }

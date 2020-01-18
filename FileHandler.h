@@ -15,6 +15,7 @@ class FileHandler
 
         /* getters */
         vector<string> GetLines();
+        string GetLine(int);
 
         /* setters */
         void AddLine(string);
@@ -28,6 +29,8 @@ class FileHandler
 
     private:
         vector<string> lines;
+        int SkipBeginningSpaces(string, int);
+        string CleanLine(string);
 };
 
 #endif

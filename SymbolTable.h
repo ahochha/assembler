@@ -10,9 +10,24 @@
 #include "FileHandler.h"
 #include "Validator.h"
 #include "OpcodeTable.h"
+#include "NumericConverter.h"
 using namespace std;
 
-class SymbolTable : public FileHandler, public Validator
+struct Address
+{
+    bool is_error;
+    bool is_equ;
+    bool RFLAG;
+    int location_counter;
+};
+
+struct FoundSymbol
+{
+    bool found;
+    Symbol symbol;
+};
+
+class SymbolTable : public FileHandler, public Validator, public NumericConverter
 {
     public:
         /* constructor */
@@ -27,9 +42,15 @@ class SymbolTable : public FileHandler, public Validator
 
     private:
         map<int, Symbol> symbol_table;
-        bool ProcessSymbol(int, string, OpcodeTable&);
-        bool ParseFirstOperation(string, int&, string, Symbol&);
-        bool ParseOperation(string, int&, string, Symbol&, OpcodeTable&);
+        Address ProcessSymbol(int, int, string, OpcodeTable&);
+        Address ParseFirstOperation(string, int&, string, Symbol&);
+        Address ParseOperation(string, int&, int, string, Symbol&, OpcodeTable&);
+        Address ParseSpecialOperation(string, string, int);
+        FoundSymbol GetExpressionValue(string, int&);
+        FoundSymbol Search(string);
+        int EvaluateExpression(string, int);
+        int AllocateNeededMemory(string, string, int);
+        int DetermineFormatType(int, int);
         void InsertSymbol(int, Symbol);
 };
 

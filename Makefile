@@ -1,5 +1,5 @@
-prog: main.o Symbol.o SymbolTable.o Opcode.o OpcodeTable.o Instruction.o IntermediateTable.o Validator.o FileHandler.o
-	g++ -std=c++11 main.o Symbol.o SymbolTable.o Opcode.o OpcodeTable.o Instruction.o IntermediateTable.o Validator.o FileHandler.o -o prog
+prog: main.o Symbol.o SymbolTable.o Opcode.o OpcodeTable.o Instruction.o IntermediateTable.o Validator.o FileHandler.o NumericConverter.o
+	g++ -std=c++11 main.o Symbol.o SymbolTable.o Opcode.o OpcodeTable.o Instruction.o IntermediateTable.o Validator.o FileHandler.o NumericConverter.o -o prog
 
 main.o: main.cpp
 	g++ -std=c++11 -c main.cpp
@@ -27,6 +27,9 @@ Validator.o: Validator.cpp Validator.h
 
 FileHandler.o: FileHandler.cpp FileHandler.h
 	g++ -std=c++11 -c FileHandler.cpp
+
+NumericConverter.o: NumericConverter.cpp NumericConverter.h
+	g++ -std=c++11 -c NumericConverter.cpp
 
 clean:
 	rm *.o prog
