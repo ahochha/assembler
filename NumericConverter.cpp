@@ -9,6 +9,7 @@ NumericConverter::NumericConverter()
     /* not currently implemented */
 }
 
+/* hex to decimal */
 int NumericConverter::htod(string hex)
 {
     vector<int> number;
@@ -42,6 +43,7 @@ int NumericConverter::htod(string hex)
     return decimal;
 }
 
+/* decimal to hex */
 string NumericConverter::dtoh(int number)
 {
     int remainder = 0;

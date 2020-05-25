@@ -2,11 +2,7 @@
 #include <iomanip>
 #include <fstream>
 #include <string>
-#include "Symbol.h"
-#include "Validator.h"
-#include "SymbolTable.h"
-#include "OpcodeTable.h"
-#include "IntermediateTable.h"
+#include "Resources.h"
 using namespace std;
 
 /* prototypes */
@@ -17,43 +13,49 @@ int main(const int argc, const char* argv[])
     ifstream OPCODE_file;
 	ifstream ASM_file;
     string filename;
-    SymbolTable symbol_table;
-    OpcodeTable opcode_table;
-    IntermediateTable intermediate_table;
 
+    /* prepare input files */
     OPCODE_file.open("OPCODES.DAT");
-
     GetFilename(argc, argv, filename);
     ASM_file.open(filename);
 
     /* load opcode table */
-    if (!OPCODE_file) {
+    if (!OPCODE_file) 
+    {
         cerr << "ERROR -- OPCODES.DAT was not found." << endl;
     }
-    else {
-        opcode_table.LoadData(OPCODE_file);
+    else 
+    {
+        resources::opcode_table.LoadData(OPCODE_file);
     }
 
-    /* process inputed program file */
-    if (!ASM_file) {
+    /* process Assembly program file */
+    if (!ASM_file) 
+    {
         cerr << "ERROR -- " << filename << " was not found." << endl;
     }
-    else {
-        symbol_table.LoadData(ASM_file, opcode_table);
-        symbol_table.PrintTable();
-        symbol_table.PrintErrors();
+    else 
+    {
+        resources::symbol_table.LoadData(ASM_file);
+        resources::symbol_table.PrintTable();
+        resources::symbol_table.PrintErrors();
     }
+
+    OPCODE_file.close();
+    ASM_file.close();
 
     return 0;
 }
 
 void GetFilename(const int argc, const char* argv[], string &filename)
 {
-    if (argc == 1) {
-        cout << endl << "Enter source file name: ";      
+    if (argc == 1) 
+    {
+        cout << endl << "Enter source file name: ";   
         getline(cin, filename);
     }
-    else {
+    else 
+    {
         filename = string(argv[1]);
     }
 

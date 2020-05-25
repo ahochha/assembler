@@ -13,21 +13,21 @@ class Opcode
         Opcode();
 
         /* getters */
-        string GetName();
-        string GetOpcode();
+        string GetOperation();
+        string GetCode();
         int GetFormat();
 
         /* setters */
-        void SetName(string);
-        void SetOpcode(string);
+        void SetOperation(string);
+        void SetCode(string);
         void SetFormat(int);
 
         /* destructor */
         ~Opcode();
 
     private:
-        string name;
-        string opcode;
+        string operation;
+        string code;
         int format;
 };
 

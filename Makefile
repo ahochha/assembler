@@ -1,35 +1,26 @@
-prog: main.o Symbol.o SymbolTable.o Opcode.o OpcodeTable.o Instruction.o IntermediateTable.o Validator.o FileHandler.o NumericConverter.o
-	g++ -std=c++11 main.o Symbol.o SymbolTable.o Opcode.o OpcodeTable.o Instruction.o IntermediateTable.o Validator.o FileHandler.o NumericConverter.o -o prog
+prog: main.o FileHandler.o Opcode.o OpcodeTable.o
+	g++ -std=c++11 main.o FileHandler.o Opcode.o OpcodeTable.o -o prog
 
 main.o: main.cpp
 	g++ -std=c++11 -c main.cpp
 
-Symbol.o: Symbol.cpp Symbol.h
-	g++ -std=c++11 -c Symbol.cpp
-
-SymbolTable.o: SymbolTable.cpp SymbolTable.h
-	g++ -std=c++11 -c SymbolTable.cpp
-
-Opcode.o: Opcode.cpp Opcode.h
-	g++ -std=c++11 -c Opcode.cpp
-
-OpcodeTable.o: OpcodeTable.cpp OpcodeTable.h
-	g++ -std=c++11 -c OpcodeTable.cpp
-
-Instruction.o: Instruction.cpp Instruction.h
-	g++ -std=c++11 -c Instruction.cpp
-
-IntermediateTable.o: IntermediateTable.cpp IntermediateTable.h
-	g++ -std=c++11 -c IntermediateTable.cpp
-
-Validator.o: Validator.cpp Validator.h
-	g++ -std=c++11 -c Validator.cpp
-
 FileHandler.o: FileHandler.cpp FileHandler.h
 	g++ -std=c++11 -c FileHandler.cpp
 
-NumericConverter.o: NumericConverter.cpp NumericConverter.h
-	g++ -std=c++11 -c NumericConverter.cpp
+NumericCoverter.o: NumericCoverter.cpp NumericCoverter.h
+	g++ -std=c++11 -c NumericCoverter.cpp
+
+Opcode.o: OpcodeTable\Opcode.cpp OpcodeTable\Opcode.h
+	g++ -std=c++11 -c OpcodeTable\Opcode.cpp
+
+OpcodeTable.o: OpcodeTable\OpcodeTable.cpp OpcodeTable\OpcodeTable.h
+	g++ -std=c++11 -c OpcodeTable\OpcodeTable.cpp
+
+Symbol.o: SymbolTable\Symbol.cpp SymbolTable\Symbol.h
+	g++ -std=c++11 -c SymbolTable\Symbol.cpp
+
+SymbolTable.o: SymbolTable\SymbolTable.cpp SymbolTable\SymbolTable.h
+	g++ -std=c++11 -c SymbolTable\SymbolTable.cpp
 
 clean:
 	rm *.o prog

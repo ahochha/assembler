@@ -6,16 +6,8 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "Symbol.h"
+#include "SymbolTable\Symbol.h"
 using namespace std;
-
-struct Error 
-{
-    bool is_error;
-    int line_num;
-    string error_type;
-    string message;
-};
 
 class Validator
 {
@@ -24,22 +16,23 @@ class Validator
         Validator();
 
         /* getters */
-        vector<Error> GetErrors();
+        vector<string> GetErrors();
 
-        /* functions */
-        bool ValidateSymbolLabel(int, string, Symbol&);
-        bool ValidateFirstOperation(string);
+        /* public functions */
+        bool ValidateSymbolLabel(string);
+        bool ValidateOperation(string);
+        bool IsValid(vector<bool>);
+        void LogError(string);
         void PrintErrors();
 
         /*destructor */
         ~Validator();
 
     private:
-        vector<Error> errors;
-        Error ValidateSymbolLabelFirstChar(int, string);
-        Error ValidateSymbolLabelAlphaNumericChars(int, string);
-        Error ValidateSymbolLabelLength(int, string);
-        void LogError(Error);
+        vector<string> errors;
+        bool ValidateSymbolLabelFirstChar(string);
+        bool ValidateSymbolLabelAlphaNumericChars(string);
+        bool ValidateSymbolLabelLength(string);
 };
 
 #endif

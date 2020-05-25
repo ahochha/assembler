@@ -3,7 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
-#include <regex>
+#include "Resources.h"
 #include "Validator.h"
 using namespace std;
 
@@ -12,91 +12,100 @@ Validator::Validator()
     /* not currently implemented */
 }
 
-bool Validator::ValidateSymbolLabel(int line_num, string name, Symbol &symbol)
+bool Validator::ValidateSymbolLabel(string label)
 {
-    vector<Error> line_errors;
+    vector<bool> validation_tests;
     bool valid_symbol = true;
     bool search_val = true;
 
     /* validate symbol label */
-    line_errors.push_back(ValidateSymbolLabelFirstChar(line_num, name));
-    line_errors.push_back(ValidateSymbolLabelAlphaNumericChars(line_num, name));
-    line_errors.push_back(ValidateSymbolLabelLength(line_num, name));
+    validation_tests.push_back(ValidateSymbolLabelFirstChar(label));
+    validation_tests.push_back(ValidateSymbolLabelAlphaNumericChars(label));
+    validation_tests.push_back(ValidateSymbolLabelLength(label));
 
-    /* search vector for errors (is_error == true) */
-    valid_symbol = find_if(line_errors.begin(), line_errors.end(), [](const Error &error){
-        return error.is_error == true;
-    }) == line_errors.end();
+    return IsValid(validation_tests);
+}
 
-    for (Error error: line_errors) {
-        if (error.is_error == true) {
-            LogError(error);
-        }
+bool Validator::ValidateSymbolLabelFirstChar(string label)
+{
+    bool valid = true;
+
+    if (!isalpha(label[0])) 
+    {
+        valid = false;
+        LogError("the symbol \"" + label + "\" must start with a letter");
     }
 
-    return valid_symbol;
+    return valid;
 }
 
-void Validator::LogError(Error error)
+bool Validator::ValidateSymbolLabelAlphaNumericChars(string label)
 {
-    errors.push_back(error);
+    bool valid = true;
 
-    return;
-}
-
-Error Validator::ValidateSymbolLabelFirstChar(int line_num, string name)
-{
-    Error error = { false, line_num, "symbol", "Valid Symbol!" };
-
-    if (!isalpha(name[0])) {
-        error.is_error = true;
-        error.message = "ERROR -- The symbol name must start with a letter.  Symbol: " + name;
-    }
-
-    return error;
-}
-
-Error Validator::ValidateSymbolLabelAlphaNumericChars(int line_num, string name)
-{
-    Error error = { false, line_num, "symbol", "Valid Symbol!" };
-
-    for (char &c: name) {
-        if(!(isalnum(c) || c == '_')) {
-            error.is_error = true;
-            error.message = "ERROR -- Symbol can only contain a number, letter, or underscore.  Symbol: " + name;
+    for (char &c: label) 
+    {
+        if (!(isalnum(c) || c == '_')) 
+        {
+            valid = false;
+            LogError("the symbol \"" + label + "\" can only contain a number, letter, or underscore");
             break;
         }
     }
 
-    return error;
+    return valid;
 }
 
-Error Validator::ValidateSymbolLabelLength(int line_num, string name)
+bool Validator::ValidateSymbolLabelLength(string label)
 {
-    Error error = { false, line_num, "symbol", "Valid Symbol!" };
+    bool valid = true;
 
-    if (name.size() > 10) {
-        error.is_error = true;
-        error.message = "ERROR -- Symbol must have 10 or less characters.  Symbol: " + name;
+    if (label.size() > 10) 
+    {
+        valid = false;
+        LogError("the symbol \"" + label + "\" must have 10 or less characters");
     }
 
-    return error;
+    return valid;
 }
 
-bool Validator::ValidateFirstOperation(string operation)
+bool Validator::ValidateOperation(string operation)
 {
-    return (operation != "START");
+    SearchOp search_op = resources::opcode_table.Search(operation);
+    bool special_op = regex_match(operation, resources::special_op_regex);
+    bool mem_space_op = regex_match(operation, resources::mem_space_regex);
+
+    return search_op.found || special_op || mem_space_op || operation == "START";
 }
 
-vector<Error> Validator::GetErrors()
+void Validator::LogError(string error_message)
+{
+    errors.push_back("error - line " + to_string(resources::line_num) + " - " + error_message);
+
+    return;
+}
+
+vector<string> Validator::GetErrors()
 {
     return errors;
 }
 
+bool Validator::IsValid(vector<bool> validation_tests)
+{
+    bool is_valid = false;
+
+    /* search vector for errors (is_error == true) */
+    is_valid = find_if(validation_tests.begin(), validation_tests.end(), [](bool &is_error){
+        return is_error == true;
+    }) == validation_tests.end();
+
+    return is_valid;
+}
+
 void Validator::PrintErrors()
 {
-    for (Error error: errors) {
-        cout << "Line #" << error.line_num << ": " << error.message << endl;
+    for (string error: errors) {
+        cout << error << endl;
     }
 
     cout << endl;

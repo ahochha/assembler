@@ -13,24 +13,15 @@ class FileHandler
         /* constructor */
         FileHandler();
 
-        /* getters */
-        vector<string> GetLines();
-        string GetLine(int);
-
-        /* setters */
-        void AddLine(string);
-
         /* functions */
-        string ReadAttribute(string, int&);
-        bool IsCommentLine(string);
+        string ReadAttribute();
+        bool IsCommentLine();
 
         /* destructor */
         ~FileHandler();
 
     private:
-        vector<string> lines;
-        int SkipBeginningSpaces(string, int);
-        string CleanLine(string);
+        void SkipBeginningSpaces();
 };
 
 #endif

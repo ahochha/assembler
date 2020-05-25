@@ -7,15 +7,8 @@
 #include <vector>
 #include <fstream>
 #include "Opcode.h"
-#include "FileHandler.h"
-#include "Validator.h"
+#include "..\FileHandler.h"
 using namespace std;
-
-struct FoundOpcode
-{
-    bool not_found;
-    Opcode opcode;
-};
 
 class OpcodeTable : public FileHandler
 {
@@ -25,15 +18,15 @@ class OpcodeTable : public FileHandler
 
         /* functions */
         void LoadData(ifstream&);
-        FoundOpcode Search(string);
+        SearchOp Search(string);
         void PrintTable();
 
         /* destructor */
         ~OpcodeTable();
 
     private:
-        vector<Opcode> opcode_table;
-        void ProcessOpcode(string);
+        vector<Opcode> opcodes;
+        void ProcessOpcode();
         void InsertOpcode(Opcode);
 };
 

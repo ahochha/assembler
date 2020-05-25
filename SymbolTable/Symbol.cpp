@@ -1,4 +1,3 @@
-#include <string>
 #include "Symbol.h"
 using namespace std;
 
@@ -11,29 +10,29 @@ Symbol::Symbol()
     MFLAG = false;
 }
 
-void Symbol::SetLabel(string _label)
+void Symbol::SetLabel(string label)
 {
-    label = _label;
+    this->label = label;
 }
 
-void Symbol::SetValue(string _value)
+void Symbol::SetValue(string value)
 {
-    value = _value;
+    this->value = value;
 }
 
-void Symbol::SetRFLAG(bool _rflag)
+void Symbol::SetRFLAG(bool RFLAG)
 {
-    RFLAG = _rflag;
+    this->RFLAG = RFLAG;
 }
 
-void Symbol::SetIFLAG(bool _iflag)
+void Symbol::SetIFLAG(bool IFLAG)
 {
-    IFLAG = _iflag;
+    this->IFLAG = IFLAG;
 }
 
-void Symbol::SetMFLAG(bool _mflag)
+void Symbol::SetMFLAG(bool MFLAG)
 {
-    MFLAG = _mflag;
+    this->MFLAG = MFLAG;
 }
 
 string Symbol::GetLabel()
